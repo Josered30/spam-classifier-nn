@@ -17,7 +17,8 @@ def parse(train_set, unique_words):
     train_dataframe = pd.DataFrame(data=train_data_set, index = indexes, columns= columns)
     train_dataframe.to_csv('train_set.csv')
 
-def test(test_set):
+
+def test(test_set, nn):
     acuaracy = 0
     confusion_matrix = [[0 for i in range(2)] for i in range(2)]
 
@@ -41,6 +42,22 @@ def test(test_set):
     print(confusion_matrix)
 
 
+
+def train(unique_words, train_set ,nn):
+    parse(train_set,unique_words)
+    train_dataframe = pd.read_csv('train_set.csv')
+    nn = NeuralNetwork(len(unique_words), (len(unique_words)+1)//2, 1, 0.01)
+    errors = nn.train(train_dataframe, 10)
+
+def save(nn, name):
+    with open(name, 'wb') as output:
+        pickle.dump(nn, output)
+
+def predict(message, unique_words, nn):
+    input = Data.get_inputs_count(message, unique_words)
+    return round(nn.feedforward(input)[0,0])
+     
+
 if __name__ == '__main__':
     spam_ham_document_reader = DocumentReader('spamham.csv')
     unique_words = spam_ham_document_reader.get_words()
@@ -52,13 +69,22 @@ if __name__ == '__main__':
 
     train_set = df.sample(frac=0.8)
     test_set = df.drop(train_set.index)
-    parse(train_set,unique_words)
+   
+    #train(unique_words, train_set, nn)
+    #test(test_set, nn)
+    #save(nn, 'nn.pkl')
 
-    train_dataframe = pd.read_csv('train_set.csv')
-    nn = NeuralNetwork(len(unique_words), (len(unique_words)+1)//2, 1, 0.01)
-    errors = nn.train(train_dataframe, 10)
-    test(test_set)
+    output = open('nn.pkl','rb')
+    nn = pickle.load(output)
+    output.close()
 
-    with open('nn.pkl', 'wb') as output:
-        pickle.dump(nn, output)
+    print(predict('How long before you get reply, just defer admission til next semester', unique_words ,nn))
+
+
+
+
+    
+    
+   
+    
 
